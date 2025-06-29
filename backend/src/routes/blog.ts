@@ -3,6 +3,7 @@ import { withAccelerate } from '@prisma/extension-accelerate';
 import {  verify } from 'hono/jwt';
 import { Hono } from 'hono';
 import { createBlogInput, updateBlogInput } from '@aiden31x/medium-app1-common';
+import { tr } from 'zod/v4/locales';
 export const blogRouter=new Hono<{
     Bindings: {
         DATABASE_URL: string;
@@ -13,7 +14,7 @@ export const blogRouter=new Hono<{
       }
 }>();
 //middleware
-//1.auth chekc
+//1.auth check
 //2.extract user id and pass down to respectiv ehandler
 blogRouter.use('/*',async (c,next)=>{
     const authHeader=c.req.header("Authorization") || "";
@@ -100,7 +101,18 @@ blogRouter.get ('/bulk', async (c)=>{
         datasourceUrl: c.env.DATABASE_URL,
       }).$extends(withAccelerate())
       
-      const blogs= await prisma.blog.findMany();
+      const blogs= await prisma.blog.findMany({
+        select: {
+            content:true,
+            title:true,
+            id:true,
+            author: {
+                select: {
+                    name:true
+                }
+            }
+        }
+      });
       return c.json({
         blogs
       })
@@ -116,6 +128,17 @@ blogRouter.get ('/:id', async (c) => {
         const blog=await prisma.blog.findFirst({
             where: {
                 id: Number(id)
+            },
+            select: {
+                id: true,
+                title: true,
+                content: true,
+                author: {
+                    select: {
+                        name: true
+                    }
+                   
+                }
             }
         })
         return c.json({
