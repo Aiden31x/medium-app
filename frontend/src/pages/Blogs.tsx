@@ -16,8 +16,7 @@ export const Blogs= () => {
         </div>
     </div>
     }
-    
-    
+      
     
     return <div >
         <Appbar />
